@@ -12,14 +12,16 @@ export function CoupleSetupScreen({ profile, onDone }: Props) {
   const [createdCode, setCreatedCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
 
   async function createSpace() {
     setBusy(true)
     setError('')
+    setMessage('')
     try {
       const result = await createCouple(profile)
       setCreatedCode(result.inviteCode)
-      await onDone(result.inviteCode)
+      setMessage('Пространство создано. Отправь этот код партнёру.')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось создать пространство')
     } finally {
@@ -27,10 +29,34 @@ export function CoupleSetupScreen({ profile, onDone }: Props) {
     }
   }
 
+  async function openCreatedSpace() {
+    if (!createdCode) return
+    setBusy(true)
+    setError('')
+    try {
+      await onDone(createdCode)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Не удалось открыть пространство')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function copyCreatedCode() {
+    if (!createdCode) return
+    try {
+      await navigator.clipboard.writeText(createdCode)
+      setMessage('Код скопирован')
+    } catch {
+      setMessage('Выдели код и скопируй его вручную')
+    }
+  }
+
   async function joinSpace(event: FormEvent) {
     event.preventDefault()
     setBusy(true)
     setError('')
+    setMessage('')
     try {
       const coupleId = await joinCouple(profile, joinCode)
       await onDone(coupleId)
@@ -43,34 +69,69 @@ export function CoupleSetupScreen({ profile, onDone }: Props) {
   }
 
   return (
-    <main className="auth-shell">
+    <main className="auth-shell pair-setup-shell">
       <section className="auth-card couple-setup">
-        <p className="eyebrow">ПОДКЛЮЧЕНИЕ ПАРЫ</p>
-        <h1>Одно пространство на двоих</h1>
-        <p className="auth-copy">Один человек создаёт пространство и передаёт второму код. Второй вводит этот код один раз.</p>
+        <div className="pair-setup-head">
+          <p className="eyebrow">ПОДКЛЮЧЕНИЕ ПАРЫ</p>
+          <h1>Соедините ваши аккаунты</h1>
+          <p className="auth-copy">Если партнёр уже создал пространство — вставь его код ниже. Это же можно сделать позже в настройках, аккаунт пересоздавать не придётся.</p>
+        </div>
 
-        <button className="primary-button" type="button" onClick={createSpace} disabled={busy || Boolean(createdCode)}>
-          {createdCode ? 'Пространство создано' : 'Создать наше пространство'}
-        </button>
-
-        {createdCode && (
-          <div className="invite-box">
-            <span>Код для второго человека</span>
-            <strong>{createdCode}</strong>
-            <small>Передайте этот код лично. Он даёт возможность стать вторым участником.</small>
+        <form className="pair-join-card" onSubmit={joinSpace}>
+          <div className="pair-step-badge">01</div>
+          <div className="pair-step-copy">
+            <strong>У меня уже есть код</strong>
+            <small>Вставь код, который прислал партнёр</small>
           </div>
-        )}
-
-        <div className="divider"><span>или</span></div>
-
-        <form className="auth-form" onSubmit={joinSpace}>
-          <label>
-            <span>Код пространства</span>
-            <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} autoCapitalize="none" autoCorrect="off" placeholder="Вставьте код" />
+          <label className="pair-code-field">
+            <span>Код пары</span>
+            <input
+              value={joinCode}
+              onChange={(event) => setJoinCode(event.target.value.trim())}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="Вставить код пары"
+              aria-label="Код пары"
+            />
           </label>
-          {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="secondary-button" disabled={busy || !joinCode.trim()}>Присоединиться</button>
+          <button className="primary-button" disabled={busy || !joinCode.trim()}>
+            {busy ? 'Подключаем…' : 'Подключиться к партнёру'}
+          </button>
         </form>
+
+        <div className="pair-divider"><span>или</span></div>
+
+        <section className="pair-create-card">
+          <div className="pair-step-row">
+            <div className="pair-step-badge">02</div>
+            <div className="pair-step-copy">
+              <strong>Я создаю пространство первым</strong>
+              <small>После создания покажем код, который нужно отправить второму человеку</small>
+            </div>
+          </div>
+
+          {!createdCode ? (
+            <button className="secondary-button" type="button" onClick={() => void createSpace()} disabled={busy}>
+              {busy ? 'Создаём…' : 'Создать наше пространство'}
+            </button>
+          ) : (
+            <div className="pair-created-box">
+              <span>Код для партнёра</span>
+              <code>{createdCode}</code>
+              <p>На втором телефоне код можно вставить сразу здесь или позже в Настройки → «Подключить партнёра».</p>
+              <div className="pair-created-actions">
+                <button type="button" className="soft-button" onClick={() => void copyCreatedCode()}>Скопировать код</button>
+                <button type="button" className="primary-button" disabled={busy} onClick={() => void openCreatedSpace()}>
+                  Открыть наше пространство
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {error ? <p className="form-error pair-setup-message" role="alert">{error}</p> : null}
+        {message ? <p className="settings-message pair-setup-message">{message}</p> : null}
       </section>
     </main>
   )
