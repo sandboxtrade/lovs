@@ -24,6 +24,31 @@ export type Couple = {
   updatedAt?: Timestamp
 }
 
+export type MeetingState = {
+  meetingAtClientMs: number
+  updatedBy: string
+  updatedAt?: Timestamp | null
+  updatedAtClientMs: number
+}
+
+export type PartnerPhoto = {
+  targetUid: string
+  uploadedBy: string
+  photoDataUrl: string
+  updatedAt?: Timestamp | null
+  updatedAtClientMs: number
+}
+
+export type PlanScope = 'tonight' | 'tomorrow'
+
+export type PlanOption = {
+  id: string
+  text: string
+  createdBy: string
+  ratings: Record<string, number>
+  createdAt?: Timestamp | null
+  createdAtClientMs: number
+}
 
 export type PresenceStatus = 'online' | 'away'
 
@@ -107,7 +132,6 @@ export type RoomPurchase = {
   purchasedAt?: Timestamp | null
   purchasedAtClientMs: number
 }
-
 
 export type PetInteractionType = 'pet' | 'play' | 'rest'
 
