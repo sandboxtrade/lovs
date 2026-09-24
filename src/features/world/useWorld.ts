@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { EconomyState, RoomPurchase } from '../../types/models'
+import type { EconomyState, GameAction, RoomPurchase } from '../../types/models'
 import type { GameProgress } from '../game/gameProgress'
 import { GAME_COIN_REWARDS } from '../game/gameService'
-import type { GameAction } from '../../types/models'
 import { subscribeToEconomy, subscribeToRoomPurchases } from './worldService'
 
 function calculateEarnedCoins(actions: GameAction[], progress: GameProgress) {
@@ -18,12 +17,28 @@ export function useWorld(
 ) {
   const [economy, setEconomy] = useState<EconomyState>({ spentCoins: 0, updatedAtClientMs: 0 })
   const [purchases, setPurchases] = useState<RoomPurchase[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [economyError, setEconomyError] = useState<string | null>(null)
+  const [roomError, setRoomError] = useState<string | null>(null)
 
   useEffect(() => {
-    setError(null)
-    const stopEconomy = subscribeToEconomy(coupleId, setEconomy, setError)
-    const stopPurchases = subscribeToRoomPurchases(coupleId, setPurchases, setError)
+    setEconomyError(null)
+    setRoomError(null)
+    const stopEconomy = subscribeToEconomy(
+      coupleId,
+      (next) => {
+        setEconomy(next)
+        setEconomyError(null)
+      },
+      setEconomyError,
+    )
+    const stopPurchases = subscribeToRoomPurchases(
+      coupleId,
+      (next) => {
+        setPurchases(next)
+        setRoomError(null)
+      },
+      setRoomError,
+    )
     return () => {
       stopEconomy()
       stopPurchases()
@@ -46,6 +61,6 @@ export function useWorld(
     earnedCoins,
     availableCoins,
     ownedItemIds,
-    error,
+    error: roomError ?? economyError,
   }
 }

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { ROOM_ITEMS, type RoomItemId } from '../../data/roomItems'
 import type { Couple, UserProfile } from '../../types/models'
+import { friendlyFirebaseError } from '../../utils/firebaseError'
+import { formatInteger } from '../../utils/numberFormat'
 import { useGameProgress } from '../game/useGameProgress'
 import { PetCard } from '../pet/PetCard'
 import { usePet } from '../pet/usePet'
@@ -29,35 +31,56 @@ export function WorldScreen({ couple, profile }: Props) {
       await buyRoomItem(couple.id, profile.uid, itemId, world.earnedCoins)
       setMessage('Предмет появился в вашей комнате')
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : 'Не удалось купить предмет')
+      setMessage(friendlyFirebaseError(cause, 'Не удалось купить предмет'))
     } finally {
       setBuyingId(null)
     }
   }
 
   return (
-    <>
-      <section className="hero world-hero">
-        <div>
+    <div className="world-screen-premium">
+      <section className="world-header-premium">
+        <div className="world-header-copy">
           <p className="eyebrow">НАШ МИР</p>
-          <h1>Наша комната</h1>
+          <h1>Ваш маленький общий дом</h1>
+          <p>Он меняется вместе с вами — через совместные действия, питомца и вещи, которые вы открываете вдвоём.</p>
         </div>
-        <div className="coin-balance" aria-label={`${world.availableCoins} монет`}>
+
+        <div className="world-balance-premium" aria-label={`${formatInteger(world.availableCoins)} монет доступно`}>
           <span>●</span>
-          <strong>{world.availableCoins}</strong>
+          <strong>{formatInteger(world.availableCoins)}</strong>
+          <small>доступно</small>
         </div>
       </section>
 
-      <section className="card room-card">
-        <div className="section-title">
+      <section className="world-glance" aria-label="Состояние нашего мира">
+        <div>
+          <span>Уровень мира</span>
+          <strong>{formatInteger(progress.level)}</strong>
+        </div>
+        <div>
+          <span>В комнате</span>
+          <strong>{formatInteger(world.purchases.length)} / {formatInteger(ROOM_ITEMS.length)}</strong>
+        </div>
+        <div>
+          <span>Моти</span>
+          <strong>{pet.view.mood.label}</strong>
+        </div>
+      </section>
+
+      <section className="card room-card room-card-premium">
+        <div className="room-card-head-premium">
           <div>
-            <span className="muted">Общее пространство</span>
-            <h2>Комната уровня {progress.level}</h2>
+            <span className="room-card-overline">ОБЩАЯ КОМНАТА</span>
+            <h2>Комната уровня {formatInteger(progress.level)}</h2>
           </div>
-          <small className="room-count">{world.purchases.length}/{ROOM_ITEMS.length}</small>
+          <div className="room-count room-count-premium">{formatInteger(world.purchases.length)}/{formatInteger(ROOM_ITEMS.length)}</div>
         </div>
         <RoomScene ownedItemIds={world.ownedItemIds} pet={pet.view} />
-        <p className="room-caption">Питомец и предметы общие: любое изменение сразу появляется у второго человека.</p>
+        <div className="room-caption room-caption-premium">
+          <span>Всё, что вы покупаете здесь, сразу появляется у вас обоих.</span>
+          <small>Комната сохраняется между сессиями</small>
+        </div>
       </section>
 
       <PetCard
@@ -71,49 +94,53 @@ export function WorldScreen({ couple, profile }: Props) {
       {pet.error ? <p className="sync-warning">{pet.error}</p> : null}
       {gameError ? <p className="sync-warning">{gameError}</p> : null}
 
-      <section className="card shop-card">
-        <div className="section-title">
+      <section className="card shop-card shop-card-premium">
+        <div className="shop-premium-head">
           <div>
-            <span className="muted">За совместные действия</span>
-            <h2>Магазин комнаты</h2>
+            <span className="room-card-overline">МАГАЗИН КОМНАТЫ</span>
+            <h2>Добавить уюта</h2>
+            <p>Монеты зарабатываются вашими совместными действиями.</p>
           </div>
-          <div className="shop-earned">
-            <span>заработано</span>
-            <strong>{world.earnedCoins}</strong>
+          <div className="shop-balance-premium">
+            <span>Баланс</span>
+            <strong>● {formatInteger(world.availableCoins)}</strong>
           </div>
         </div>
 
-        <div className="shop-grid">
+        <div className="shop-grid shop-grid-premium">
           {ROOM_ITEMS.map((item) => {
             const owned = world.ownedItemIds.has(item.id)
             const affordable = world.availableCoins >= item.price
             return (
-              <article className={`shop-item ${owned ? 'owned' : ''}`} key={item.id}>
-                <div className="shop-item-icon" aria-hidden="true">{item.emoji}</div>
-                <div className="shop-item-copy">
+              <article className={`shop-item shop-item-premium ${owned ? 'owned' : ''}`} key={item.id}>
+                <div className="shop-item-icon shop-item-icon-premium" aria-hidden="true">{item.emoji}</div>
+                <div className="shop-item-copy shop-item-copy-premium">
                   <strong>{item.name}</strong>
                   <small>{item.description}</small>
                 </div>
-                <button
-                  type="button"
-                  disabled={owned || buyingId !== null || !affordable}
-                  onClick={() => void handleBuy(item.id)}
-                >
-                  {owned ? 'Есть' : buyingId === item.id ? '…' : `● ${item.price}`}
-                </button>
+                <div className="shop-item-action">
+                  {owned ? <span className="shop-owned-badge">В комнате</span> : <small>{affordable ? 'доступно' : `не хватает ${formatInteger(item.price - world.availableCoins)}`}</small>}
+                  <button
+                    type="button"
+                    disabled={owned || buyingId !== null || !affordable}
+                    onClick={() => void handleBuy(item.id)}
+                  >
+                    {owned ? '✓' : buyingId === item.id ? '…' : `● ${formatInteger(item.price)}`}
+                  </button>
+                </div>
               </article>
             )
           })}
         </div>
 
+        <div className="shop-earned-line">
+          <span>Всего заработано</span>
+          <strong>{formatInteger(world.earnedCoins)} монет</strong>
+        </div>
+
         {message ? <p className="world-message">{message}</p> : null}
         {world.error ? <p className="sync-warning game-error">{world.error}</p> : null}
       </section>
-
-      <section className="card economy-note">
-        <span className="muted">Как растёт питомец</span>
-        <p>Его развитие связано с XP пары. Поглаживания и игры меняют настроение, но не дают бесконечно фармить уровень — питомец взрослеет от ваших настоящих совместных действий.</p>
-      </section>
-    </>
+    </div>
   )
 }
