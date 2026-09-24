@@ -7,14 +7,66 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../../firebase/config'
-import type { MeetingState, PartnerPhoto } from '../../types/models'
+import type {
+  BusyWindow,
+  MeetingState,
+  PartnerPhoto,
+  PhotoOfDay,
+  WeekdayKey,
+  WeeklyAvailability,
+} from '../../types/models'
 
 const MAX_PHOTO_DATA_URL_BYTES = 700_000
 const MAX_SOURCE_FILE_BYTES = 15 * 1024 * 1024
+export const WEEKDAY_KEYS: WeekdayKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
 function requireDb() {
   if (!db) throw new Error('Firebase is not configured')
   return db
+}
+
+function encodedBytes(value: string) {
+  return new TextEncoder().encode(value).byteLength
+}
+
+function sanitizeWindow(window: BusyWindow, fallbackId: string): BusyWindow | null {
+  const startMinutes = Math.max(0, Math.min(24 * 60 - 1, Math.round(window.startMinutes)))
+  const endMinutes = Math.max(1, Math.min(24 * 60, Math.round(window.endMinutes)))
+  if (endMinutes - startMinutes < 15) return null
+  return {
+    id: window.id || fallbackId,
+    startMinutes,
+    endMinutes,
+  }
+}
+
+export function createEmptyAvailabilityDays() {
+  return WEEKDAY_KEYS.reduce<Record<WeekdayKey, BusyWindow[]>>((accumulator, key) => {
+    accumulator[key] = []
+    return accumulator
+  }, {} as Record<WeekdayKey, BusyWindow[]>)
+}
+
+function normalizeAvailability(data: Partial<WeeklyAvailability> | undefined, uid: string): WeeklyAvailability {
+  const days = createEmptyAvailabilityDays()
+
+  WEEKDAY_KEYS.forEach((dayKey) => {
+    const rawWindows = Array.isArray(data?.days?.[dayKey]) ? data?.days?.[dayKey] : []
+    days[dayKey] = rawWindows
+      .map((window, index) => sanitizeWindow(window, `${dayKey}-${index + 1}`))
+      .filter((window): window is BusyWindow => Boolean(window))
+      .sort((left, right) => left.startMinutes - right.startMinutes)
+  })
+
+  return {
+    uid,
+    timezoneOffsetMinutes: Number.isFinite(data?.timezoneOffsetMinutes)
+      ? Number(data?.timezoneOffsetMinutes)
+      : new Date().getTimezoneOffset(),
+    days,
+    updatedAt: data?.updatedAt ?? null,
+    updatedAtClientMs: Number(data?.updatedAtClientMs ?? 0),
+  }
 }
 
 export function subscribeToMeeting(
@@ -80,7 +132,7 @@ export async function savePhotoForPartner(
   if (!photoDataUrl.startsWith('data:image/')) {
     throw new Error('Некорректное изображение')
   }
-  if (new TextEncoder().encode(photoDataUrl).byteLength > MAX_PHOTO_DATA_URL_BYTES) {
+  if (encodedBytes(photoDataUrl) > MAX_PHOTO_DATA_URL_BYTES) {
     throw new Error('Фото получилось слишком большим')
   }
 
@@ -98,11 +150,98 @@ export async function savePhotoForPartner(
   )
 }
 
-function encodedBytes(value: string) {
-  return new TextEncoder().encode(value).byteLength
+export function subscribeToAvailability(
+  coupleId: string,
+  onChange: (availability: Record<string, WeeklyAvailability>) => void,
+  onError?: (message: string) => void,
+): Unsubscribe {
+  const firestore = requireDb()
+  return onSnapshot(
+    collection(firestore, 'couples', coupleId, 'availability'),
+    (snapshot) => {
+      const next: Record<string, WeeklyAvailability> = {}
+      snapshot.docs.forEach((item) => {
+        next[item.id] = normalizeAvailability(item.data() as WeeklyAvailability, item.id)
+      })
+      onChange(next)
+    },
+    () => onError?.('Не удалось синхронизировать расписание'),
+  )
 }
 
-export async function compressPartnerPhoto(file: File): Promise<string> {
+export async function saveAvailability(
+  coupleId: string,
+  uid: string,
+  days: Record<WeekdayKey, BusyWindow[]>,
+) {
+  const normalized = normalizeAvailability({ uid, days, timezoneOffsetMinutes: new Date().getTimezoneOffset() }, uid)
+  const firestore = requireDb()
+  await setDoc(
+    doc(firestore, 'couples', coupleId, 'availability', uid),
+    {
+      uid,
+      timezoneOffsetMinutes: normalized.timezoneOffsetMinutes,
+      days: normalized.days,
+      updatedAt: serverTimestamp(),
+      updatedAtClientMs: Date.now(),
+    },
+    { merge: true },
+  )
+}
+
+export function subscribeToPhotoOfDay(
+  coupleId: string,
+  onChange: (photos: Record<string, PhotoOfDay>) => void,
+  onError?: (message: string) => void,
+): Unsubscribe {
+  const firestore = requireDb()
+  return onSnapshot(
+    collection(firestore, 'couples', coupleId, 'photoOfDay'),
+    (snapshot) => {
+      const next: Record<string, PhotoOfDay> = {}
+      snapshot.docs.forEach((item) => {
+        const photo = item.data() as PhotoOfDay
+        if (photo.uid && photo.photoDataUrl) next[photo.uid] = photo
+      })
+      onChange(next)
+    },
+    () => onError?.('Не удалось синхронизировать фото дня'),
+  )
+}
+
+function getLocalDayKey(date = new Date()) {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
+}
+
+export async function savePhotoOfDay(
+  coupleId: string,
+  uid: string,
+  photoDataUrl: string,
+  caption: string,
+) {
+  if (!photoDataUrl.startsWith('data:image/')) {
+    throw new Error('Некорректное изображение')
+  }
+  if (encodedBytes(photoDataUrl) > MAX_PHOTO_DATA_URL_BYTES) {
+    throw new Error('Фото получилось слишком большим')
+  }
+
+  const firestore = requireDb()
+  await setDoc(
+    doc(firestore, 'couples', coupleId, 'photoOfDay', uid),
+    {
+      uid,
+      photoDataUrl,
+      caption: caption.trim().slice(0, 120),
+      dayKey: getLocalDayKey(),
+      updatedAt: serverTimestamp(),
+      updatedAtClientMs: Date.now(),
+    },
+    { merge: true },
+  )
+}
+
+export async function compressImageToDataUrl(file: File): Promise<string> {
   if (!file.type.startsWith('image/')) throw new Error('Выбери изображение')
   if (file.size > MAX_SOURCE_FILE_BYTES) throw new Error('Фото слишком большое')
 
@@ -142,3 +281,5 @@ export async function compressPartnerPhoto(file: File): Promise<string> {
     URL.revokeObjectURL(objectUrl)
   }
 }
+
+export const compressPartnerPhoto = compressImageToDataUrl

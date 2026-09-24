@@ -1,35 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { Couple, MeetingState, UserProfile } from '../../types/models'
+import { useMemo, useState } from 'react'
+import type { Couple, UserProfile } from '../../types/models'
 import { logout, updateDisplayName } from '../auth/authService'
-import { saveMeeting } from '../shared/sharedService'
 
 type Props = {
   profile: UserProfile
   couple: Couple
-  meeting: MeetingState | null
   onBack: () => void
   onProfileUpdated: (profile: UserProfile) => void
 }
 
-function toInputValue(timestamp?: number) {
-  if (!timestamp) return ''
-  const date = new Date(timestamp)
-  const offset = date.getTimezoneOffset() * 60_000
-  return new Date(timestamp - offset).toISOString().slice(0, 16)
-}
-
-export function SettingsScreen({ profile, couple, meeting, onBack, onProfileUpdated }: Props) {
+export function SettingsScreen({ profile, couple, onBack, onProfileUpdated }: Props) {
   const [name, setName] = useState(profile.displayName)
-  const [meetingValue, setMeetingValue] = useState(() => toInputValue(meeting?.meetingAtClientMs))
   const [busy, setBusy] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const partnerId = couple.memberIds.find((id) => id !== profile.uid)
   const partnerName = partnerId ? couple.members[partnerId]?.displayName : null
   const subtitle = useMemo(() => partnerName ? `Пространство с ${partnerName}` : 'Ждём второго человека', [partnerName])
-
-  useEffect(() => {
-    setMeetingValue(toInputValue(meeting?.meetingAtClientMs))
-  }, [meeting?.meetingAtClientMs])
 
   async function saveName() {
     setBusy('name')
@@ -41,22 +27,6 @@ export function SettingsScreen({ profile, couple, meeting, onBack, onProfileUpda
       setMessage('Имя обновлено')
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : 'Не удалось сохранить имя')
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  async function saveMeetingTime() {
-    if (!meetingValue) return
-    setBusy('meeting')
-    setMessage(null)
-    try {
-      const timestamp = new Date(meetingValue).getTime()
-      if (!Number.isFinite(timestamp)) throw new Error('Выбери дату и время')
-      await saveMeeting(couple.id, profile.uid, timestamp)
-      setMessage('Время встречи сохранено')
-    } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : 'Не удалось сохранить встречу')
     } finally {
       setBusy(null)
     }
@@ -92,11 +62,8 @@ export function SettingsScreen({ profile, couple, meeting, onBack, onProfileUpda
       </section>
 
       <section className="card settings-card">
-        <div className="settings-section-title"><span>Следующая встреча</span><small>счётчик появится наверху</small></div>
-        <label className="settings-field">
-          <span>Дата и время</span>
-          <div className="settings-inline"><input type="datetime-local" value={meetingValue} onChange={(event) => setMeetingValue(event.target.value)} /><button type="button" disabled={busy !== null || !meetingValue} onClick={() => void saveMeetingTime()}>Готово</button></div>
-        </label>
+        <div className="settings-section-title"><span>Расписание встреч</span><small>теперь редактируется прямо на главном экране</small></div>
+        <p className="settings-note">На главной странице каждый из вас может отметить занятые промежутки недели. Приложение само найдёт ближайшее свободное окно, когда вы оба сможете побыть вместе.</p>
       </section>
 
       <section className="card settings-card invite-settings">

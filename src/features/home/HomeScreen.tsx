@@ -1,14 +1,17 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { getEmotionDefinition } from '../../data/emotions'
 import type { Couple, EmotionState, UserProfile } from '../../types/models'
 import { DailyHub } from '../daily/DailyHub'
 import { EmotionComposer } from '../emotions/EmotionComposer'
 import { useEmotions } from '../emotions/useEmotions'
-import { SharedGoals } from '../goals/SharedGoals'
 import { GameProgressCard } from '../game/GameProgressCard'
+import { SharedGoals } from '../goals/SharedGoals'
 import { PlansBoard } from '../plans/PlansBoard'
 import { presenceToView, usePresence } from '../presence/usePresence'
+import { getMeetingSummary } from '../shared/availabilityUtils'
 import { CoupleOverview } from '../shared/CoupleOverview'
+import { MeetingPlannerCard } from '../shared/MeetingPlannerCard'
+import { PhotoOfDayCard } from '../shared/PhotoOfDayCard'
 import { useSharedSpace } from '../shared/useSharedSpace'
 import { SettingsScreen } from '../settings/SettingsScreen'
 import { IncomingTouch } from '../touches/IncomingTouch'
@@ -86,12 +89,16 @@ export function HomeScreen({ profile, couple }: Props) {
   const partnerEmotion = partnerId ? emotions[partnerId] : undefined
   const selfEmotion = emotions[profile.uid]
 
+  const meetingSummary = useMemo(
+    () => getMeetingSummary(shared.availability[profile.uid], partnerId ? shared.availability[partnerId] : undefined, Boolean(partnerId), partner?.displayName, now),
+    [shared.availability, profile.uid, partnerId, partner?.displayName, now],
+  )
+
   if (activeTab === 'settings') {
     return (
       <SettingsScreen
         profile={profile}
         couple={couple}
-        meeting={shared.meeting}
         onBack={() => setActiveTab('home')}
         onProfileUpdated={setProfile}
       />
@@ -121,14 +128,24 @@ export function HomeScreen({ profile, couple }: Props) {
         partnerId={partnerId}
         partnerPresenceLabel={partnerPresence.label}
         partnerOnline={partnerPresence.state === 'online'}
-        meeting={shared.meeting}
         photos={shared.photos}
+        meetingSummary={meetingSummary.summary}
+        meetingDetail={meetingSummary.detail}
         onOpenSettings={() => setActiveTab('settings')}
       />
 
       {shared.error ? <p className="sync-warning">{shared.error}</p> : null}
       {emotionSyncError ? <p className="sync-warning">{emotionSyncError}</p> : null}
       {touchSyncError ? <p className="sync-warning">{touchSyncError}</p> : null}
+
+      <MeetingPlannerCard
+        couple={couple}
+        profile={profile}
+        partnerName={partner?.displayName}
+        availability={shared.availability}
+      />
+
+      <PhotoOfDayCard couple={couple} profile={profile} partner={partner} photos={shared.photoOfDay} />
 
       <section className="home-section states-section">
         <div className="home-section-heading">
