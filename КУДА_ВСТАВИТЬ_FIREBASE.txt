@@ -1,0 +1,12 @@
+После настройки Firebase Console откройте:
+public/firebase-config.js
+
+И вставьте туда 6 значений из firebaseConfig:
+apiKey
+authDomain
+projectId
+storageBucket
+messagingSenderId
+appId
+
+GitHub Variables больше не нужны.
