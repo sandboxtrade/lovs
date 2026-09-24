@@ -7,18 +7,22 @@ service cloud.firestore {
 
     function isMember(coupleId) {
       return signedIn()
+        && exists(/databases/$(database)/documents/couples/$(coupleId))
         && request.auth.uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds;
     }
 
     function validCreateCouple() {
       return signedIn()
         && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.memberIds is list
         && request.resource.data.memberIds.size() == 1
         && request.resource.data.memberIds[0] == request.auth.uid;
     }
 
     function validJoin() {
       return signedIn()
+        && resource.data.memberIds is list
+        && request.resource.data.memberIds is list
         && !(request.auth.uid in resource.data.memberIds)
         && resource.data.memberIds.size() == 1
         && request.resource.data.memberIds.size() == 2
@@ -45,16 +49,11 @@ service cloud.firestore {
       allow update: if validJoin() || validMemberEdit(coupleId);
       allow delete: if false;
 
-      // Приложение приватное и состоит только из двух участников пары.
-      // Любые вложенные данные доступны только участникам этого пространства.
-      match /{subcollection}/{docId} {
-        allow read, create, update: if isMember(coupleId);
-        allow delete: if false;
-      }
-
-      match /{subcollection}/{docId}/{nested=**} {
-        allow read, create, update: if isMember(coupleId);
-        allow delete: if false;
+      // Every document below a couple belongs to the two members of that couple.
+      // This single descendant rule also covers deeply nested paths such as
+      // plans/{scope}/options/{id} and goals/{goalId}/contributions/{id}.
+      match /{subcollection}/{document=**} {
+        allow read, create, update, delete: if isMember(coupleId);
       }
     }
   }
