@@ -49,6 +49,7 @@ export type BusyWindow = {
 
 export type WeeklyAvailability = {
   uid: string
+  configured: boolean
   timezoneOffsetMinutes: number
   days: Record<WeekdayKey, BusyWindow[]>
   updatedAt?: Timestamp | null

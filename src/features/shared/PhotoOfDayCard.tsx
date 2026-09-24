@@ -25,8 +25,8 @@ export function PhotoOfDayCard({ couple, profile, partner, photos }: Props) {
   const partnerPhoto = partnerId ? photos[partnerId] : undefined
 
   useEffect(() => {
-    setCaption(photos[profile.uid]?.caption ?? '')
-  }, [photos, profile.uid])
+    setCaption(selfPhoto?.caption ?? '')
+  }, [profile.uid, selfPhoto?.updatedAtClientMs])
 
   async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]

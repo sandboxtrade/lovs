@@ -1,4 +1,4 @@
-# US v1.1.1
+# US v1.1.8
 
 Private two-person PWA built with React, TypeScript, Vite and Firebase.
 

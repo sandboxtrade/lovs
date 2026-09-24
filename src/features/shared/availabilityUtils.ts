@@ -32,7 +32,7 @@ export type MutualWindow = {
 
 export function hasScheduleEntries(schedule: WeeklyAvailability | undefined) {
   if (!schedule) return false
-  return Object.values(schedule.days).some((windows) => windows.length > 0)
+  return schedule.configured || Object.values(schedule.days).some((windows) => windows.length > 0)
 }
 
 export function toLocalParts(timestampMs: number, timezoneOffsetMinutes: number) {

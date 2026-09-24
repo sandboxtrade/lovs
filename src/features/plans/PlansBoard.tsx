@@ -96,7 +96,7 @@ function PlanCard({ couple, profile, scope, title, subtitle, icon }: PlanCardPro
           placeholder="Добавить идею…"
           onChange={(event) => setText(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter' && text.trim()) void add()
+            if (event.key === 'Enter' && text.trim() && !busy) void add()
           }}
         />
         <button type="button" disabled={busy || !text.trim()} onClick={() => void add()}>＋</button>

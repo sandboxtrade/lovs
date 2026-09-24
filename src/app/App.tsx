@@ -3,7 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth, isFirebaseConfigured } from '../firebase/config'
 import { AuthScreen } from '../features/auth/AuthScreen'
 import { FirebaseSetupScreen } from '../features/auth/FirebaseSetupScreen'
-import { getUserProfile } from '../features/auth/authService'
+import { getUserProfile, prepareAuthPersistence } from '../features/auth/authService'
 import { CoupleSetupScreen } from '../features/couple/CoupleSetupScreen'
 import { getCouple, subscribeToCouple } from '../features/couple/coupleService'
 import { HomeScreen } from '../features/home/HomeScreen'
@@ -49,16 +49,27 @@ export function App() {
       return
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        reset()
-        return
-      }
-      setFirebaseUser(user)
-      void loadSession(user)
-    })
+    let cancelled = false
+    let unsubscribe = () => undefined
 
-    return unsubscribe
+    void prepareAuthPersistence()
+      .catch(() => undefined)
+      .finally(() => {
+        if (cancelled) return
+        unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (!user) {
+            reset()
+            return
+          }
+          setFirebaseUser(user)
+          void loadSession(user)
+        })
+      })
+
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
     // Store actions are stable Zustand functions; subscribing once is intentional.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -68,13 +79,16 @@ export function App() {
 
     return subscribeToCouple(
       profile.coupleId,
-      setCouple,
+      (nextCouple) => {
+        setCouple(nextCouple)
+        setError(null)
+      },
       setError,
     )
   }, [profile?.coupleId, setCouple, setError])
 
   if (!isFirebaseConfigured) return <FirebaseSetupScreen />
-  if (loading) return <main className="loading-screen"><div className="spinner" /><span>Открываем ваше пространство…</span></main>
+  if (loading) return <main className="loading-screen"><div className="heart-loader" aria-hidden="true"><span>♥</span></div><span>Открываем ваше пространство…</span></main>
   if (!firebaseUser) return <AuthScreen />
   if (error) return <main className="auth-shell"><section className="auth-card"><h1>Не удалось загрузить</h1><p className="form-error">{error}</p><button className="primary-button" onClick={() => void loadSession(firebaseUser)}>Повторить</button></section></main>
   if (!profile) return <AuthScreen />

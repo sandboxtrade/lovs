@@ -60,6 +60,7 @@ function normalizeAvailability(data: Partial<WeeklyAvailability> | undefined, ui
 
   return {
     uid,
+    configured: data?.configured ?? true,
     timezoneOffsetMinutes: Number.isFinite(data?.timezoneOffsetMinutes)
       ? Number(data?.timezoneOffsetMinutes)
       : new Date().getTimezoneOffset(),
@@ -180,6 +181,7 @@ export async function saveAvailability(
     doc(firestore, 'couples', coupleId, 'availability', uid),
     {
       uid,
+      configured: true,
       timezoneOffsetMinutes: normalized.timezoneOffsetMinutes,
       days: normalized.days,
       updatedAt: serverTimestamp(),

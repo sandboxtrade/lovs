@@ -26,6 +26,7 @@ function inputToMinutes(value: string) {
 function createEmptyAvailability(uid: string): WeeklyAvailability {
   return {
     uid,
+    configured: false,
     timezoneOffsetMinutes: new Date().getTimezoneOffset(),
     days: createEmptyAvailabilityDays(),
     updatedAtClientMs: 0,
@@ -45,7 +46,7 @@ export function MeetingPlannerCard({ couple, profile, partnerName, availability 
 
   useEffect(() => {
     setLocalDays(ownSchedule.days)
-  }, [ownSchedule])
+  }, [ownSchedule.updatedAtClientMs, profile.uid])
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60_000)
