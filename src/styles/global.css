@@ -3599,3 +3599,556 @@ button {
     width: 100%;
   }
 }
+
+/* v1.1.11 stability pass: iPhone layout, photos, goals and room */
+.portrait-frame {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.portrait-frame > .portrait-initial {
+  position: relative;
+  z-index: 1;
+  color: #ffe7f1;
+  font-size: 34px;
+  font-weight: 720;
+  line-height: 1;
+}
+
+.portrait-frame > .photo-edit {
+  position: absolute;
+  z-index: 4;
+  right: 7px;
+  top: 7px;
+  bottom: auto;
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  background: #f1a3c1;
+  color: #3b2030;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 7px 18px rgba(10,4,9,.28);
+}
+
+.portrait-frame.editable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, transparent 55%, rgba(12,6,11,.22));
+  pointer-events: none;
+}
+
+.portrait-frame.editable.is-uploading {
+  opacity: .72;
+}
+
+.portrait-frame.editable input {
+  z-index: 5;
+}
+
+.portrait-frame-hint {
+  display: none !important;
+}
+
+.overview-feedback {
+  margin-top: 12px;
+}
+
+.goal-main-with-delete {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.goal-main-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.goal-delete-button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(224,118,153,.16);
+  border-radius: 11px;
+  background: rgba(224,118,153,.055);
+  color: #c98ea4;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.goal-delete-button.confirm {
+  border-color: rgba(234,123,151,.3);
+  background: rgba(234,123,151,.11);
+  color: #efb1c3;
+}
+
+.goal-delete-confirm {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0 2px;
+  padding: 11px 12px;
+  border: 1px solid rgba(234,123,151,.13);
+  border-radius: 14px;
+  background: rgba(234,123,151,.045);
+}
+
+.goal-delete-confirm span {
+  color: #a88e9b;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.goal-delete-confirm button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,218,234,.09);
+  border-radius: 10px;
+  background: rgba(255,255,255,.035);
+  color: #cbb6c1;
+  font-size: 10px;
+}
+
+/* Stable room scene: deliberately simple geometry so purchased items stay visible on every viewport. */
+.room-scene-stable {
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,222,236,.12);
+  border-radius: 24px;
+  background: #1b101a;
+  box-shadow: 0 18px 38px rgba(7,2,7,.22), inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.room-backdrop {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.52 / 1;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 84% 12%, rgba(246,193,217,.12), transparent 23%),
+    linear-gradient(180deg, #5e4357 0 67%, #2b1d2a 67% 100%);
+}
+
+.room-backdrop::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 67%;
+  height: 1px;
+  background: rgba(255,255,255,.08);
+}
+
+.room-window-stable {
+  position: absolute;
+  z-index: 2;
+  left: 9%;
+  top: 10%;
+  width: 25%;
+  height: 31%;
+  overflow: hidden;
+  border: 5px solid #74566d;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #5a617d, #2d3048);
+  box-shadow: inset 0 0 18px rgba(255,220,235,.06), 0 8px 18px rgba(7,3,7,.12);
+}
+
+.room-window-stable::before,
+.room-window-stable::after {
+  content: '';
+  position: absolute;
+  background: #74566d;
+}
+
+.room-window-stable::before { left: 50%; top: 0; bottom: 0; width: 4px; transform: translateX(-50%); }
+.room-window-stable::after { left: 0; right: 0; top: 50%; height: 4px; transform: translateY(-50%); }
+.room-window-stable > span { position: absolute; right: 12%; top: 7%; color: #ffe1ae; font-size: 19px; }
+.room-window-stable > i { position: absolute; left: 11%; bottom: 11%; width: 43%; height: 17%; border-radius: 50%; background: rgba(255,255,255,.1); }
+
+.room-picture-stable {
+  position: absolute;
+  z-index: 2;
+  left: 45%;
+  top: 12%;
+  width: 12%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 4px solid #76566b;
+  border-radius: 10px;
+  background: #e7bfd0;
+  color: #975272;
+  font-size: 18px;
+}
+
+.room-sofa-stable {
+  position: absolute;
+  z-index: 4;
+  left: 24%;
+  bottom: 14%;
+  width: 52%;
+  height: 32%;
+  border-radius: 30px 30px 13px 13px;
+  background: linear-gradient(180deg, #a87a96, #77576c);
+  box-shadow: inset 0 -14px 0 rgba(43,25,37,.18), 0 14px 24px rgba(8,3,8,.18);
+}
+
+.room-sofa-stable > i,
+.room-sofa-stable > b {
+  position: absolute;
+  top: 15%;
+  width: 27%;
+  height: 38%;
+  border-radius: 16px;
+  background: #b98aa4;
+}
+
+.room-sofa-stable > i { left: 14%; }
+.room-sofa-stable > b { right: 14%; }
+.room-sofa-stable > span { position: absolute; left: 47%; top: 12%; width: 7%; height: 48%; border-radius: 999px; background: rgba(255,238,246,.08); }
+
+.room-table-stable {
+  position: absolute;
+  z-index: 5;
+  right: 8%;
+  bottom: 13%;
+  width: 18%;
+  height: 6%;
+  border-radius: 999px;
+  background: #976f64;
+}
+
+.room-table-stable > i { position: absolute; left: 47%; top: 70%; width: 7%; height: 360%; background: #57403d; }
+.room-table-stable > b { position: absolute; left: 18%; top: -78%; width: 30%; height: 45%; border-radius: 5px; background: #d99db7; }
+
+.room-floor-stable {
+  position: absolute;
+  z-index: 1;
+  left: -8%;
+  right: -8%;
+  bottom: -13%;
+  height: 37%;
+  transform: perspective(150px) rotateX(12deg);
+  background: repeating-linear-gradient(90deg,#31222e 0 34px,#281c26 34px 36px,#32232f 36px 68px);
+}
+
+.room-decor {
+  position: absolute;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.room-decor-plant {
+  left: 7%;
+  bottom: 14%;
+  font-size: clamp(32px, 10vw, 48px);
+  filter: drop-shadow(0 7px 5px rgba(0,0,0,.2));
+}
+
+.room-decor-lamp {
+  right: 9%;
+  bottom: 13%;
+  width: 11%;
+  height: 38%;
+}
+
+.room-lamp-glow,
+.room-lamp-shade,
+.room-lamp-stand,
+.room-lamp-base { position: absolute; display: block; }
+.room-lamp-glow { left: 50%; top: -3%; width: 135%; height: 31%; transform: translateX(-50%); border-radius: 50%; background: rgba(255,224,174,.18); filter: blur(8px); }
+.room-lamp-shade { left: 50%; top: 2%; width: 72%; height: 23%; transform: translateX(-50%); border-radius: 50% 50% 30% 30%; background: #e3be9f; }
+.room-lamp-stand { left: 48%; top: 23%; bottom: 7%; width: 5%; background: #7a606d; }
+.room-lamp-base { left: 24%; right: 24%; bottom: 5%; height: 5%; border-radius: 999px; background: #765d68; }
+
+.room-decor-rug {
+  z-index: 3;
+  left: 23%;
+  bottom: 4%;
+  width: 56%;
+  height: 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, #b681a1, #744f6a 72%);
+  transform: perspective(100px) rotateX(53deg);
+  box-shadow: inset 0 0 0 2px rgba(255,225,238,.07);
+}
+
+.room-decor-photo {
+  left: 59%;
+  top: 10%;
+  width: 16%;
+  height: 17%;
+  display: grid;
+  place-items: center;
+  border: 4px solid #8b687f;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f1d9e5, #c99fb6);
+  color: #9b5875;
+  font-size: 20px;
+}
+
+.room-decor-bookshelf {
+  right: 2.5%;
+  top: 9%;
+  width: 11%;
+  height: 38%;
+  overflow: hidden;
+  border: 4px solid #6c505f;
+  border-radius: 7px;
+  background: #493642;
+}
+
+.room-decor-bookshelf > i { position: absolute; left: 0; right: 0; height: 3px; background: #846472; }
+.room-decor-bookshelf > i:nth-child(1) { top: 28%; }
+.room-decor-bookshelf > i:nth-child(2) { top: 56%; }
+.room-decor-bookshelf > i:nth-child(3) { top: 80%; }
+.room-decor-bookshelf > span { position: absolute; left: 12%; right: 10%; bottom: 8%; color: #d89cb5; font-size: 10px; white-space: nowrap; transform: none; }
+
+.room-decor-moon {
+  left: 48%;
+  top: 6%;
+  width: 13%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+.room-decor-moon > i { position: absolute; inset: 0; border-radius: 50%; background: rgba(255,226,183,.2); filter: blur(10px); }
+.room-decor-moon > span { position: relative; color: #ffe1ad; font-size: 30px; }
+
+.room-pet-stable {
+  position: absolute;
+  z-index: 8;
+  left: 15%;
+  bottom: 13%;
+  display: grid;
+  justify-items: center;
+  min-width: 52px;
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,.18));
+}
+.room-pet-stable > span { font-size: clamp(34px, 9vw, 44px); line-height: 1; }
+.room-pet-stable > i { position: absolute; right: -3px; top: -8px; min-width: 22px; height: 22px; display: grid; place-items: center; border-radius: 999px; background: rgba(28,18,27,.9); font-style: normal; font-size: 11px; }
+.room-pet-stable > b { max-width: 72px; margin-top: 3px; padding: 2px 7px; overflow: hidden; border-radius: 999px; background: rgba(17,10,16,.72); color: #c8b8c1; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+
+.room-owned-strip {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 10px 11px 11px;
+  scrollbar-width: none;
+}
+.room-owned-strip::-webkit-scrollbar { display: none; }
+.room-owned-strip > span { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid rgba(255,222,236,.07); border-radius: 999px; background: rgba(255,244,249,.035); font-size: 13px; }
+.room-owned-strip small { color: #9e8796; font-size: 8px; }
+
+/* One mobile layout for all current iPhones, including 12 Pro Max and 15 Plus. */
+@media (max-width: 560px) {
+  .app-shell,
+  .auth-shell {
+    width: 100%;
+    max-width: none;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+
+  .app-shell {
+    padding-bottom: calc(122px + env(safe-area-inset-bottom));
+  }
+
+  .card,
+  .relationship-overview,
+  .settings-profile-card,
+  .auth-card,
+  .planner-card,
+  .photo-day-card {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .relationship-overview {
+    padding: 17px;
+  }
+
+  .overview-topline h1 {
+    font-size: 36px;
+  }
+
+  .couple-portraits {
+    grid-template-columns: minmax(0,1fr) 34px minmax(0,1fr);
+    gap: 5px;
+  }
+
+  .portrait-frame {
+    width: min(96px, 100%);
+    border-radius: 28px;
+  }
+
+  .portrait-frame img {
+    border-radius: 26px;
+  }
+
+  .portrait-person strong {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    text-overflow: initial;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+  }
+
+  .portrait-person small {
+    width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .overview-stats-polished,
+  .state-pair-grid,
+  .planner-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-title,
+  .home-section-heading,
+  .settings-section-title,
+  .shop-premium-head,
+  .world-header-premium {
+    align-items: flex-start;
+  }
+
+  .section-title > small,
+  .home-section-heading > small,
+  .settings-section-title > small {
+    max-width: 46%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .plan-heading {
+    grid-template-columns: 42px minmax(0,1fr);
+  }
+
+  .plan-heading h2 {
+    font-size: 22px;
+    line-height: 1.05;
+  }
+
+  .plan-add {
+    grid-template-columns: minmax(0,1fr) 50px;
+  }
+
+  .plan-add input,
+  .plan-add button {
+    height: 50px;
+  }
+
+  .plan-option {
+    min-width: 0;
+  }
+
+  .plan-option-copy strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .photo-day-grid,
+  .photo-day-slot {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-day-image-wrap,
+  .photo-day-image,
+  .photo-day-empty,
+  .photo-day-slot.partner .photo-day-image,
+  .photo-day-slot.partner .photo-day-empty {
+    height: 190px;
+  }
+
+  .planner-summary,
+  .world-header-premium,
+  .shop-premium-head {
+    grid-template-columns: 1fr;
+  }
+
+  .world-balance-premium,
+  .shop-balance-premium {
+    justify-self: start;
+  }
+
+  .world-glance {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+
+  .world-glance strong,
+  .world-glance span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .shop-item-premium {
+    grid-template-columns: 46px minmax(0,1fr) 82px;
+    gap: 8px;
+  }
+
+  .shop-item-action {
+    min-width: 0;
+  }
+
+  .shop-item-action button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .goal-main-with-delete {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .goal-main-actions {
+    justify-content: flex-start;
+  }
+
+  .bottom-nav {
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    width: auto;
+    transform: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .couple-portraits {
+    grid-template-columns: 1fr 28px 1fr;
+  }
+
+  .portrait-frame {
+    width: min(82px, 100%);
+  }
+
+  .world-glance {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-item-premium {
+    grid-template-columns: 42px minmax(0,1fr);
+  }
+
+  .shop-item-action {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 88px;
+    align-items: center;
+  }
+
+  .goal-delete-confirm {
+    grid-template-columns: 1fr;
+  }
+}
