@@ -11,11 +11,19 @@ export type GoalWithProgress = Goal & {
 export function useGoals(coupleId: string) {
   const [goals, setGoals] = useState<Goal[]>([])
   const [contributionsByGoal, setContributionsByGoal] = useState<Record<string, GoalContribution[]>>({})
-  const [error, setError] = useState<string | null>(null)
+  const [goalsError, setGoalsError] = useState<string | null>(null)
+  const [contributionsError, setContributionsError] = useState<string | null>(null)
 
   useEffect(() => {
-    setError(null)
-    return subscribeToGoals(coupleId, setGoals, setError)
+    setGoalsError(null)
+    return subscribeToGoals(
+      coupleId,
+      (next) => {
+        setGoals(next)
+        setGoalsError(null)
+      },
+      setGoalsError,
+    )
   }, [coupleId])
 
   useEffect(() => {
@@ -29,14 +37,16 @@ export function useGoals(coupleId: string) {
       return next
     })
 
+    setContributionsError(null)
     const unsubscribers = goals.map((goal) =>
       subscribeToGoalContributions(
         coupleId,
         goal.id,
         (items) => {
           setContributionsByGoal((current) => ({ ...current, [goal.id]: items }))
+          setContributionsError(null)
         },
-        setError,
+        setContributionsError,
       ),
     )
 
@@ -57,5 +67,5 @@ export function useGoals(coupleId: string) {
     [goals, contributionsByGoal],
   )
 
-  return { goals: goalsWithProgress, error }
+  return { goals: goalsWithProgress, error: goalsError ?? contributionsError }
 }

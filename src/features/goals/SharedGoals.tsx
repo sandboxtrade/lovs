@@ -1,17 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { Couple, UserProfile } from '../../types/models'
-import { addContribution, createGoal } from './goalService'
+import { friendlyFirebaseError } from '../../utils/firebaseError'
+import { formatInteger, formatMoney, formatNumericInput, parseFormattedInteger } from '../../utils/numberFormat'
+import { addContribution, createGoal, deleteGoal } from './goalService'
 import { useGoals, type GoalWithProgress } from './useGoals'
 
 type Props = {
   couple: Couple
   profile: UserProfile
-}
-
-const money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 })
-
-function formatMoney(value: number) {
-  return `${money.format(value)} ₽`
 }
 
 function contributionTime(clientMs: number) {
@@ -49,6 +45,7 @@ export function SharedGoals({ couple, profile }: Props) {
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -73,13 +70,13 @@ export function SharedGoals({ couple, profile }: Props) {
     setError(null)
     setSuccess(null)
     try {
-      await createGoal(couple.id, profile.uid, title, Number(target.replace(/\s/g, '')))
+      await createGoal(couple.id, profile.uid, title, parseFormattedInteger(target))
       setTitle('')
       setTarget('')
       setShowCreate(false)
       setSuccess('Новая общая цель создана')
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось создать цель')
+      setError(friendlyFirebaseError(cause, 'Не удалось создать цель'))
     } finally {
       setBusy(false)
     }
@@ -96,14 +93,38 @@ export function SharedGoals({ couple, profile }: Props) {
         couple.id,
         selected.id,
         profile.uid,
-        Number(amount.replace(/\s/g, '')),
+        parseFormattedInteger(amount),
         note,
       )
       setAmount('')
       setNote('')
       setSuccess('Пополнение добавлено')
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось добавить пополнение')
+      setError(friendlyFirebaseError(cause, 'Не удалось добавить пополнение'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!selected) return
+    if (deleteConfirmId !== selected.id) {
+      setDeleteConfirmId(selected.id)
+      setError(null)
+      setSuccess(null)
+      return
+    }
+
+    setBusy(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      await deleteGoal(couple.id, selected.id)
+      setDeleteConfirmId(null)
+      setSelectedId(null)
+      setSuccess('Цель удалена у вас обоих')
+    } catch (cause) {
+      setError(friendlyFirebaseError(cause, 'Не удалось удалить цель'))
     } finally {
       setBusy(false)
     }
@@ -141,10 +162,10 @@ export function SharedGoals({ couple, profile }: Props) {
             <span>Нужно накопить</span>
             <div className="money-input">
               <input
-                value={target}
-                onChange={(event) => setTarget(event.target.value.replace(/[^0-9]/g, ''))}
+                value={formatNumericInput(target)}
+                onChange={(event) => setTarget(event.target.value)}
                 inputMode="numeric"
-                placeholder="120000"
+                placeholder="120 000"
                 disabled={busy}
               />
               <span>₽</span>
@@ -160,7 +181,7 @@ export function SharedGoals({ couple, profile }: Props) {
             <button
               type="button"
               className={goal.id === selected?.id ? 'active' : ''}
-              onClick={() => setSelectedId(goal.id)}
+              onClick={() => { setSelectedId(goal.id); setDeleteConfirmId(null) }}
               key={goal.id}
             >
               {goal.title}
@@ -177,13 +198,30 @@ export function SharedGoals({ couple, profile }: Props) {
         </div>
       ) : (
         <>
-          <div className="goal-main">
+          <div className="goal-main goal-main-with-delete">
             <div>
               <span className="muted">Сейчас копим на</span>
               <h3>{selected.title}</h3>
             </div>
-            {selected.current >= selected.target ? <span className="goal-complete-badge">Готово</span> : null}
+            <div className="goal-main-actions">
+              {selected.current >= selected.target ? <span className="goal-complete-badge">Готово</span> : null}
+              <button
+                type="button"
+                className={`goal-delete-button ${deleteConfirmId === selected.id ? 'confirm' : ''}`}
+                disabled={busy}
+                onClick={() => void handleDelete()}
+              >
+                {deleteConfirmId === selected.id ? 'Подтвердить удаление' : 'Удалить'}
+              </button>
+            </div>
           </div>
+
+          {deleteConfirmId === selected.id ? (
+            <div className="goal-delete-confirm">
+              <span>Удалится сама цель и история её пополнений у вас обоих.</span>
+              <button type="button" disabled={busy} onClick={() => setDeleteConfirmId(null)}>Отмена</button>
+            </div>
+          ) : null}
 
           <GoalProgress goal={selected} />
 
@@ -191,14 +229,14 @@ export function SharedGoals({ couple, profile }: Props) {
             <div className="quick-amounts" aria-label="Быстрые суммы">
               {[100, 500, 1000, 5000].map((value) => (
                 <button key={value} type="button" onClick={() => setAmount(String(value))} disabled={busy}>
-                  +{money.format(value)}
+                  +{formatInteger(value)}
                 </button>
               ))}
             </div>
             <div className="money-input contribution-amount">
               <input
-                value={amount}
-                onChange={(event) => setAmount(event.target.value.replace(/[^0-9]/g, ''))}
+                value={formatNumericInput(amount)}
+                onChange={(event) => setAmount(event.target.value)}
                 inputMode="numeric"
                 placeholder="Сколько отложил(а)"
                 aria-label="Сумма пополнения"
@@ -215,13 +253,13 @@ export function SharedGoals({ couple, profile }: Props) {
               aria-label="Комментарий к пополнению"
               disabled={busy}
             />
-            <button className="primary-button" type="submit" disabled={busy || !amount}>Добавить в копилку</button>
+            <button className="primary-button" type="submit" disabled={busy || !parseFormattedInteger(amount)}>Добавить в копилку</button>
           </form>
 
           <div className="contribution-history">
             <div className="contribution-history-head">
               <strong>Последние пополнения</strong>
-              <span>{selected.contributions.length}</span>
+              <span>{formatInteger(selected.contributions.length)}</span>
             </div>
             {selected.contributions.length ? selected.contributions.slice(0, 8).map((item) => (
               <div className="contribution-row" key={item.id}>

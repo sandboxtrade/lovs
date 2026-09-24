@@ -1,12 +1,14 @@
 import {
   collection,
   doc,
+  getDocs,
+  limit,
   onSnapshot,
   orderBy,
   query,
   runTransaction,
   serverTimestamp,
-  limit,
+  writeBatch,
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../../firebase/config'
@@ -108,6 +110,24 @@ export async function addContribution(
       createdAtClientMs: now,
     })
   })
+}
+
+export async function deleteGoal(coupleId: string, goalId: string) {
+  const firestore = requireDb()
+  const goalRef = doc(firestore, 'couples', coupleId, 'goals', goalId)
+  const contributions = await getDocs(collection(goalRef, 'contributions'))
+
+  // Keep well below Firestore's 500-write batch limit.
+  const refs = contributions.docs.map((item) => item.ref)
+  for (let index = 0; index < refs.length; index += 400) {
+    const batch = writeBatch(firestore)
+    refs.slice(index, index + 400).forEach((ref) => batch.delete(ref))
+    await batch.commit()
+  }
+
+  const finalBatch = writeBatch(firestore)
+  finalBatch.delete(goalRef)
+  await finalBatch.commit()
 }
 
 export function subscribeToGoals(
