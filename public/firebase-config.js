@@ -1,17 +1,8 @@
-/**
- * Firebase Web App config for US.
- *
- * 1. Open Firebase Console -> Project settings -> Your apps -> Web app.
- * 2. Copy the values from firebaseConfig into the object below.
- * 3. Commit this file. GitHub Pages will redeploy automatically.
- *
- * Firebase Web config is an identifier/configuration object, not a private server secret.
- */
 window.__FIREBASE_CONFIG__ = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyAtvy836oYw1YhLE4OSCT1q70AUrAVrIH4",
+  authDomain: "lovs-12bc6.firebaseapp.com",
+  projectId: "lovs-12bc6",
+  storageBucket: "lovs-12bc6.firebasestorage.app",
+  messagingSenderId: "896818885362",
+  appId: "1:896818885362:web:d66e123a5e838273c2966b",
 }
