@@ -12,6 +12,7 @@ type Props = {
 export function IncomingTouch({ coupleId, event, sender }: Props) {
   const [visibleId, setVisibleId] = useState<string | null>(null)
   const [closing, setClosing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!event) {
@@ -19,6 +20,7 @@ export function IncomingTouch({ coupleId, event, sender }: Props) {
       return
     }
     setClosing(false)
+    setError(null)
     setVisibleId(event.id)
   }, [event?.id])
 
@@ -31,10 +33,13 @@ export function IncomingTouch({ coupleId, event, sender }: Props) {
   async function dismiss() {
     if (closing) return
     setClosing(true)
+    setError(null)
     try {
       await markTouchSeen(coupleId, currentEvent.id)
-    } finally {
       setVisibleId(null)
+    } catch {
+      setError('Не удалось отметить как просмотренное')
+    } finally {
       setClosing(false)
     }
   }
@@ -49,6 +54,7 @@ export function IncomingTouch({ coupleId, event, sender }: Props) {
       <button type="button" onClick={() => void dismiss()} disabled={closing} aria-label="Закрыть">
         {closing ? '…' : '×'}
       </button>
+      {error ? <small className="incoming-touch-error">{error}</small> : null}
     </section>
   )
 }

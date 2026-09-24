@@ -7,7 +7,7 @@ import {
   updateProfile,
   type User,
 } from 'firebase/auth'
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, getDoc, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore'
 import { auth, db } from '../../firebase/config'
 import type { UserProfile } from '../../types/models'
 
@@ -44,6 +44,31 @@ export async function loginWithEmail(email: string, password: string) {
   await setPersistence(firebase.auth, browserLocalPersistence)
   const credential = await signInWithEmailAndPassword(firebase.auth, email.trim(), password)
   return credential.user
+}
+
+
+export async function updateDisplayName(uid: string, coupleId: string, displayName: string) {
+  const firebase = requireFirebase()
+  const value = displayName.trim()
+  if (!value) throw new Error('Имя не может быть пустым')
+  if (value.length > 30) throw new Error('Имя слишком длинное')
+
+  const batch = writeBatch(firebase.db)
+  batch.update(doc(firebase.db, 'users', uid), {
+    displayName: value,
+    updatedAt: serverTimestamp(),
+  })
+  batch.update(doc(firebase.db, 'couples', coupleId), {
+    [`members.${uid}.displayName`]: value,
+    updatedAt: serverTimestamp(),
+  })
+  await batch.commit()
+
+  // Firestore is the canonical profile state for the app. Auth displayName is
+  // mirrored afterwards, so a temporary Auth failure cannot lose the saved name.
+  if (firebase.auth.currentUser) {
+    await updateProfile(firebase.auth.currentUser, { displayName: value }).catch(() => undefined)
+  }
 }
 
 export async function logout() {
