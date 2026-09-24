@@ -7,16 +7,50 @@ import {
   subscribeToPhotoOfDay,
 } from './sharedService'
 
+type SharedErrors = {
+  photos: string | null
+  availability: string | null
+  photoOfDay: string | null
+}
+
+const EMPTY_ERRORS: SharedErrors = { photos: null, availability: null, photoOfDay: null }
+
 export function useSharedSpace(coupleId: string) {
   const [photos, setPhotos] = useState<Record<string, PartnerPhoto>>({})
   const [availability, setAvailability] = useState<Record<string, WeeklyAvailability>>({})
   const [photoOfDay, setPhotoOfDay] = useState<Record<string, PhotoOfDay>>({})
-  const [error, setError] = useState<string | null>(null)
+  const [errors, setErrors] = useState<SharedErrors>(EMPTY_ERRORS)
 
   useEffect(() => {
-    const stopPhotos = subscribeToPartnerPhotos(coupleId, setPhotos, setError)
-    const stopAvailability = subscribeToAvailability(coupleId, setAvailability, setError)
-    const stopPhotoOfDay = subscribeToPhotoOfDay(coupleId, setPhotoOfDay, setError)
+    setErrors(EMPTY_ERRORS)
+
+    const stopPhotos = subscribeToPartnerPhotos(
+      coupleId,
+      (next) => {
+        setPhotos(next)
+        setErrors((current) => ({ ...current, photos: null }))
+      },
+      (message) => setErrors((current) => ({ ...current, photos: message })),
+    )
+
+    const stopAvailability = subscribeToAvailability(
+      coupleId,
+      (next) => {
+        setAvailability(next)
+        setErrors((current) => ({ ...current, availability: null }))
+      },
+      (message) => setErrors((current) => ({ ...current, availability: message })),
+    )
+
+    const stopPhotoOfDay = subscribeToPhotoOfDay(
+      coupleId,
+      (next) => {
+        setPhotoOfDay(next)
+        setErrors((current) => ({ ...current, photoOfDay: null }))
+      },
+      (message) => setErrors((current) => ({ ...current, photoOfDay: message })),
+    )
+
     return () => {
       stopPhotos()
       stopAvailability()
@@ -33,5 +67,7 @@ export function useSharedSpace(coupleId: string) {
     updatedAt: null,
   }), [])
 
-  return { photos, availability, photoOfDay, emptyAvailability, error }
+  const error = errors.photos ?? errors.photoOfDay ?? errors.availability
+
+  return { photos, availability, photoOfDay, emptyAvailability, error, errors }
 }

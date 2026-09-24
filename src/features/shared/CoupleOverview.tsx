@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent } from 'react'
 import type { Couple, CoupleMember, PartnerPhoto, UserProfile } from '../../types/models'
+import { friendlyFirebaseError } from '../../utils/firebaseError'
 import { compressPartnerPhoto, savePhotoForPartner } from './sharedService'
 
 type Props = {
@@ -33,6 +34,7 @@ export function CoupleOverview({
 }: Props) {
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   async function handlePhoto(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -40,12 +42,13 @@ export function CoupleOverview({
     if (!file || !partnerId) return
     setUploading(true)
     setMessage(null)
+    setError(null)
     try {
       const dataUrl = await compressPartnerPhoto(file)
       await savePhotoForPartner(couple.id, profile.uid, partnerId, dataUrl)
       setMessage(`Фото для ${partner?.displayName ?? 'партнёра'} обновлено`)
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : 'Не удалось загрузить фото')
+      setError(friendlyFirebaseError(cause, 'Не удалось загрузить фото'))
     } finally {
       setUploading(false)
     }
@@ -67,7 +70,9 @@ export function CoupleOverview({
       <div className="couple-portraits">
         <div className="portrait-person">
           <div className="portrait-frame portrait-frame-self">
-            {selfPhoto ? <img src={selfPhoto} alt={`Фото ${profile.displayName}`} /> : <span>{initials(profile.displayName)}</span>}
+            {selfPhoto
+              ? <img src={selfPhoto} alt={`Фото ${profile.displayName}`} />
+              : <span className="portrait-initial">{initials(profile.displayName)}</span>}
           </div>
           <strong>{profile.displayName}</strong>
           <small>{partner ? `это фото тебе выбрал ${partner.displayName}` : 'твоё фото здесь выберет партнёр'}</small>
@@ -77,19 +82,20 @@ export function CoupleOverview({
 
         <div className="portrait-person">
           {partnerId ? (
-            <label className="portrait-frame editable portrait-frame-partner" aria-label={`Выбрать фото для ${partner?.displayName ?? 'партнёра'}`}>
-              {partnerPhoto ? <img src={partnerPhoto} alt={`Фото ${partner?.displayName ?? 'партнёра'}`} /> : <span>{initials(partner?.displayName ?? '♡')}</span>}
+            <label className={`portrait-frame editable portrait-frame-partner ${uploading ? 'is-uploading' : ''}`} aria-label={`Выбрать фото для ${partner?.displayName ?? 'партнёра'}`}>
+              {partnerPhoto
+                ? <img src={partnerPhoto} alt={`Фото ${partner?.displayName ?? 'партнёра'}`} />
+                : <span className="portrait-initial">{initials(partner?.displayName ?? '♡')}</span>}
               <input type="file" accept="image/*" onChange={handlePhoto} disabled={uploading} />
-              <span className="portrait-frame-hint">{uploading ? 'Сохраняем…' : 'Нажми, чтобы выбрать фото'}</span>
-              <span className="photo-edit" aria-hidden="true">⌁</span>
+              <span className="photo-edit" aria-hidden="true">{uploading ? '…' : '＋'}</span>
             </label>
           ) : (
             <div className="portrait-frame portrait-frame-partner">
-              <span>{initials(partner?.displayName ?? '♡')}</span>
+              <span className="portrait-initial">{initials(partner?.displayName ?? '♡')}</span>
             </div>
           )}
           <strong>{partner?.displayName ?? 'Ждём партнёра'}</strong>
-          <small>{partner ? `${partnerPresenceLabel} · ты выбираешь фото для него` : 'подключится по коду'}</small>
+          <small>{partner ? `${partnerPresenceLabel} · нажми на фото, чтобы выбрать его` : 'подключится по коду'}</small>
         </div>
       </div>
 
@@ -106,7 +112,8 @@ export function CoupleOverview({
         </div>
       </div>
 
-      {message ? <p className="overview-message">{message}</p> : null}
+      {error ? <p className="form-error overview-feedback" role="alert">{error}</p> : null}
+      {message ? <p className="overview-message overview-feedback">{message}</p> : null}
     </section>
   )
 }

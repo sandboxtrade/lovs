@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import type { Couple, CoupleMember, PhotoOfDay, UserProfile } from '../../types/models'
+import { friendlyFirebaseError } from '../../utils/firebaseError'
 import { compressImageToDataUrl, savePhotoOfDay } from './sharedService'
 
 type Props = {
@@ -39,7 +40,7 @@ export function PhotoOfDayCard({ couple, profile, partner, photos }: Props) {
       await savePhotoOfDay(couple.id, profile.uid, dataUrl, caption)
       setMessage('Фото дня обновлено')
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : 'Не удалось сохранить фото дня')
+      setMessage(friendlyFirebaseError(cause, 'Не удалось сохранить фото дня'))
     } finally {
       setUploading(false)
     }
@@ -56,7 +57,7 @@ export function PhotoOfDayCard({ couple, profile, partner, photos }: Props) {
       await savePhotoOfDay(couple.id, profile.uid, selfPhoto.photoDataUrl, caption)
       setMessage('Подпись обновлена')
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : 'Не удалось обновить подпись')
+      setMessage(friendlyFirebaseError(cause, 'Не удалось обновить подпись'))
     } finally {
       setUploading(false)
     }
