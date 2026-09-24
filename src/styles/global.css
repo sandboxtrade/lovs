@@ -2940,3 +2940,662 @@ textarea {
     padding-right: max(12px, env(safe-area-inset-right));
   }
 }
+
+/* v1.1.9 responsive hardening + pair onboarding */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  min-width: 0;
+}
+
+#root,
+.app-shell,
+.auth-shell,
+.card,
+.relationship-overview,
+.settings-profile-card,
+.auth-card,
+.home-section,
+.plans-board,
+.daily-hub,
+.goals-card,
+.game-card,
+.shop-card,
+.pet-card,
+.planner-card,
+.photo-day-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+button,
+.soft-button,
+.primary-button,
+.secondary-button,
+.photo-day-upload,
+.planner-toggle,
+.daily-submit,
+.goal-create-toggle {
+  line-height: 1.18;
+}
+
+button {
+  overflow-wrap: anywhere;
+}
+
+.bottom-nav button,
+.goal-tabs button,
+.quick-amounts button,
+.heart-rating button {
+  overflow-wrap: normal;
+}
+
+.section-title,
+.card-head,
+.home-section-heading,
+.settings-section-title,
+.overview-topline,
+.world-header-premium,
+.shop-premium-head,
+.pet-premium-head {
+  min-width: 0;
+}
+
+.section-title > *,
+.card-head > *,
+.home-section-heading > *,
+.settings-section-title > *,
+.overview-topline > *,
+.world-header-premium > *,
+.shop-premium-head > *,
+.pet-premium-head > * {
+  min-width: 0;
+}
+
+.photo-day-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-day-upload input {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.photo-day-caption-save,
+.planner-toggle,
+.soft-button,
+.primary-button,
+.secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.photo-day-copy textarea,
+.emotion-note textarea,
+.daily-answer-form textarea,
+.auth-form input,
+.settings-inline input,
+.goal-create-form input,
+.money-input input,
+.plan-add input,
+.pet-rename input,
+.planner-window input,
+.pair-code-field input {
+  font-size: 16px;
+}
+
+.pair-setup-shell {
+  display: grid;
+  align-items: center;
+  min-height: 100dvh;
+}
+
+.couple-setup {
+  width: 100%;
+  overflow: hidden;
+}
+
+.pair-setup-head {
+  margin-bottom: 18px;
+}
+
+.pair-setup-head h1 {
+  margin-bottom: 10px;
+  font-size: clamp(29px, 8vw, 38px);
+  line-height: 1.02;
+}
+
+.pair-setup-head .auth-copy {
+  margin-bottom: 0;
+}
+
+.pair-join-card,
+.pair-create-card {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid rgba(255, 221, 236, .09);
+  border-radius: 20px;
+  background: rgba(255, 242, 248, .035);
+}
+
+.pair-join-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0,1fr);
+  gap: 11px;
+}
+
+.pair-step-badge {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  border: 1px solid rgba(244, 169, 199, .18);
+  background: rgba(244, 169, 199, .08);
+  color: #eeb1c8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.pair-step-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  align-content: center;
+}
+
+.pair-step-copy strong {
+  color: #f7ebf2;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.pair-step-copy small {
+  color: #9e8997;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.pair-code-field,
+.pair-join-card > .primary-button {
+  grid-column: 1 / -1;
+}
+
+.pair-code-field {
+  display: grid;
+  gap: 7px;
+  margin-top: 3px;
+  color: #a78f9f;
+  font-size: 10px;
+}
+
+.pair-code-field input {
+  width: 100%;
+  height: 50px;
+  padding: 0 14px;
+  border: 1px solid rgba(244, 169, 199, .2);
+  border-radius: 15px;
+  outline: none;
+  background: rgba(255, 246, 251, .055);
+  color: #fff6fa;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.pair-code-field input::placeholder {
+  color: #725f6c;
+}
+
+.pair-code-field input:focus {
+  border-color: rgba(244, 169, 199, .5);
+  box-shadow: 0 0 0 3px rgba(244, 169, 199, .08);
+}
+
+.pair-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0;
+  color: #725f6c;
+  font-size: 10px;
+}
+
+.pair-divider::before,
+.pair-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 221, 236, .07);
+}
+
+.pair-step-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0,1fr);
+  gap: 11px;
+  margin-bottom: 13px;
+}
+
+.pair-create-card > .secondary-button {
+  min-height: 48px;
+}
+
+.pair-created-box {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pair-created-box > span,
+.pair-settings-code-label {
+  color: #a78f9f;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.pair-created-box code,
+.invite-settings code {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  border: 1px solid rgba(255, 221, 236, .09);
+  border-radius: 14px;
+  background: rgba(0,0,0,.14);
+  color: #f0d7e3;
+  font-size: 12px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+.pair-created-box p,
+.pair-settings-help {
+  margin: 0;
+  color: #a6909d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.pair-created-actions {
+  display: grid;
+  grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr);
+  gap: 8px;
+}
+
+.pair-created-actions > button {
+  min-height: 46px;
+  margin: 0;
+}
+
+.pair-setup-message {
+  margin-top: 13px;
+  margin-bottom: 0;
+}
+
+.invite-settings.waiting-partner {
+  border-color: rgba(244,169,199,.16);
+  background: linear-gradient(145deg, rgba(61,38,56,.88), rgba(34,24,35,.92));
+}
+
+.pair-settings-help {
+  margin: -2px 0 13px;
+}
+
+.pair-settings-code-label {
+  display: block;
+  margin-bottom: 7px;
+}
+
+/* Keep compact layouts stable on all iPhone widths, not only one breakpoint. */
+@media (max-width: 520px) {
+  .app-shell,
+  .auth-shell {
+    width: 100%;
+  }
+
+  .section-title,
+  .settings-section-title,
+  .home-section-heading {
+    gap: 8px;
+  }
+
+  .section-title > small,
+  .settings-section-title > small,
+  .home-section-heading > small {
+    max-width: 44%;
+    overflow-wrap: anywhere;
+  }
+
+  .photo-day-slot {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-day-image-wrap,
+  .photo-day-image,
+  .photo-day-empty,
+  .photo-day-slot.partner .photo-day-image,
+  .photo-day-slot.partner .photo-day-empty {
+    height: clamp(160px, 46vw, 210px);
+  }
+
+  .photo-day-upload {
+    min-height: 40px;
+  }
+
+  .planner-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-badge {
+    justify-self: start;
+  }
+
+  .world-header-premium {
+    grid-template-columns: minmax(0,1fr) auto;
+  }
+
+  .shop-item-premium {
+    grid-template-columns: 44px minmax(0,1fr) minmax(72px, auto);
+  }
+}
+
+@media (max-width: 390px) {
+  .app-shell {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+  }
+
+  .auth-shell {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+
+  .card,
+  .relationship-overview,
+  .planner-card,
+  .photo-day-card,
+  .settings-card,
+  .auth-card {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .overview-stats-polished,
+  .planner-status-grid,
+  .game-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .couple-portraits {
+    grid-template-columns: minmax(0,1fr) 34px minmax(0,1fr);
+  }
+
+  .portrait-frame {
+    width: clamp(70px, 24vw, 88px);
+  }
+
+  .portrait-person strong {
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.2;
+  }
+
+  .portrait-person small {
+    overflow-wrap: anywhere;
+  }
+
+  .touch-actions {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .quick-amounts {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .planner-window {
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) 34px;
+    gap: 6px;
+  }
+
+  .pair-created-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .pet-premium-head {
+    grid-template-columns: 56px minmax(0,1fr) 46px;
+  }
+
+  .pet-avatar-premium {
+    width: 56px;
+    height: 56px;
+  }
+
+  .shop-item-premium {
+    grid-template-columns: 42px minmax(0,1fr) 72px;
+    gap: 7px;
+  }
+
+  .shop-item-premium button {
+    min-width: 0;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
+
+@media (max-width: 340px) {
+  .couple-portraits {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .portrait-link {
+    width: 100%;
+    height: 24px;
+  }
+
+  .portrait-link i {
+    left: 18%;
+    right: 18%;
+  }
+
+  .planner-window {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-remove {
+    width: 100%;
+    height: 38px;
+  }
+
+  .pet-premium-head,
+  .shop-item-premium {
+    grid-template-columns: 1fr;
+  }
+
+  .pet-avatar-premium,
+  .pet-level-premium {
+    justify-self: start;
+  }
+
+  .shop-item-icon-premium {
+    justify-self: start;
+  }
+
+  .shop-item-premium button {
+    width: 100%;
+  }
+}
+
+/* v1.1.10 existing-account pairing */
+.pair-connect-settings {
+  border-color: rgba(245, 169, 200, .16);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(245, 169, 200, .09), transparent 34%),
+    linear-gradient(145deg, rgba(54, 34, 51, .94), rgba(31, 22, 32, .96));
+}
+
+.pair-connect-copy {
+  margin-bottom: 16px;
+}
+
+.pair-connect-field {
+  gap: 8px;
+}
+
+.pair-connect-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.pair-connect-row input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 0 13px;
+  border: 1px solid rgba(255, 218, 234, .1);
+  border-radius: 14px;
+  outline: none;
+  background: rgba(255, 241, 247, .04);
+  color: #fff4f9;
+  font-size: 16px;
+}
+
+.pair-connect-row input:focus {
+  border-color: rgba(244, 169, 199, .42);
+  box-shadow: 0 0 0 3px rgba(244, 169, 199, .08);
+}
+
+.pair-connect-row button {
+  min-width: 116px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(244, 169, 199, .2);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ffdce9, #f2a8c6);
+  color: #3a2030;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.pair-connect-row button:disabled {
+  opacity: .46;
+}
+
+.pair-connect-hint {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 218, 234, .07);
+  border-radius: 14px;
+  background: rgba(255, 241, 247, .025);
+}
+
+.pair-connect-hint > span {
+  color: #e8a9c1;
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.pair-connect-hint p {
+  margin: 0;
+  color: #9f8998;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.pair-connected-card {
+  border-color: rgba(124, 215, 170, .13);
+}
+
+.pair-connected-person {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  padding: 11px 12px;
+  border-radius: 15px;
+  background: rgba(124, 215, 170, .045);
+}
+
+.pair-connected-person > span {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(244, 169, 199, .09);
+  color: #ef9fbe;
+  font-size: 17px;
+}
+
+.pair-connected-person > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.pair-connected-person strong {
+  overflow: hidden;
+  color: #f7eaf1;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pair-connected-person small {
+  color: #8f7b89;
+  font-size: 10px;
+}
+
+.settings-feedback {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 430px) {
+  .pair-connect-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pair-connect-row button {
+    width: 100%;
+  }
+}
