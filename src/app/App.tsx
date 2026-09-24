@@ -49,14 +49,15 @@ export function App() {
       return
     }
 
+    const activeAuth = auth
     let cancelled = false
-    let unsubscribe = () => undefined
+    let unsubscribe: () => void = () => {}
 
     void prepareAuthPersistence()
       .catch(() => undefined)
       .finally(() => {
         if (cancelled) return
-        unsubscribe = onAuthStateChanged(auth, (user) => {
+        unsubscribe = onAuthStateChanged(activeAuth, (user) => {
           if (!user) {
             reset()
             return
