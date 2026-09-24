@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Couple, PlanOption, PlanScope, UserProfile } from '../../types/models'
+import { friendlyFirebaseError } from '../../utils/firebaseError'
 import { addPlanOption, ratePlanOption } from './planService'
 import { usePlans } from './usePlans'
 
@@ -43,7 +44,7 @@ function OptionRow({ option, scope, couple, profile }: { option: PlanOption; sco
     try {
       await ratePlanOption(couple.id, scope, option.id, profile.uid, rating)
     } catch (cause) {
-      setRateError(cause instanceof Error ? cause.message : 'Не удалось сохранить оценку')
+      setRateError(friendlyFirebaseError(cause, 'Не удалось сохранить оценку'))
     } finally {
       setBusy(false)
     }
@@ -77,7 +78,7 @@ function PlanCard({ couple, profile, scope, title, subtitle, icon }: PlanCardPro
       await addPlanOption(couple.id, scope, profile.uid, text)
       setText('')
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : 'Не удалось добавить вариант')
+      setMessage(friendlyFirebaseError(cause, 'Не удалось добавить вариант'))
     } finally {
       setBusy(false)
     }

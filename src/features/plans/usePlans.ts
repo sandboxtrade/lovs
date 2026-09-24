@@ -8,7 +8,16 @@ export function usePlans(coupleId: string, scope: PlanScope) {
 
   useEffect(() => {
     setError(null)
-    return subscribeToPlanOptions(coupleId, scope, setOptions, setError)
+    return subscribeToPlanOptions(
+      coupleId,
+      scope,
+      (next) => {
+        setOptions(next)
+        setError(null)
+      },
+      setError,
+    )
   }, [coupleId, scope])
+
   return { options, error }
 }
