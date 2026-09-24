@@ -1,9 +1,9 @@
-US v1.1.2 build fix
+US v1.1.3 — UI wiring fix
 
-Заменить/добавить файлы в репозитории с сохранением путей:
-- src/types/models.ts
-- src/features/plans/planService.ts
-- src/features/shared/useSharedSpace.ts
+Replace these files in the repository preserving paths:
+- src/features/home/HomeScreen.tsx
+- src/features/daily/DailyHub.tsx
+- src/features/world/RoomScene.tsx
 - src/features/settings/SettingsScreen.tsx
 
-После commit GitHub Actions должен запустить сборку заново.
+No Firebase config or Firestore rules changes are required for this patch.

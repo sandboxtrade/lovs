@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import { getEmotionDefinition } from '../../data/emotions'
 import type { Couple, EmotionState, UserProfile } from '../../types/models'
-import { logout } from '../auth/authService'
 import { DailyHub } from '../daily/DailyHub'
 import { EmotionComposer } from '../emotions/EmotionComposer'
 import { useEmotions } from '../emotions/useEmotions'
 import { SharedGoals } from '../goals/SharedGoals'
 import { GameProgressCard } from '../game/GameProgressCard'
+import { PlansBoard } from '../plans/PlansBoard'
 import { presenceToView, usePresence } from '../presence/usePresence'
+import { CoupleOverview } from '../shared/CoupleOverview'
+import { useSharedSpace } from '../shared/useSharedSpace'
+import { SettingsScreen } from '../settings/SettingsScreen'
 import { IncomingTouch } from '../touches/IncomingTouch'
 import { TouchActions } from '../touches/TouchActions'
 import { TouchHistory } from '../touches/TouchHistory'
 import { useTouches } from '../touches/useTouches'
 import { WorldScreen } from '../world/WorldScreen'
+import { useSessionStore } from '../../stores/sessionStore'
 
 type Props = {
   profile: UserProfile
@@ -27,28 +31,72 @@ function getEmotionAgeMs(state: EmotionState | undefined, now = Date.now()) {
 }
 
 function formatEmotionUpdated(state: EmotionState | undefined, now: number) {
-  if (!state) return 'состояние ещё не отмечено'
+  if (!state) return 'ещё не отмечено'
   const ageMs = getEmotionAgeMs(state, now)
   const minutes = Math.floor(ageMs / 60_000)
-  if (minutes < 1) return 'обновлено только что'
-  if (minutes < 60) return `обновлено ${minutes} мин назад`
+  if (minutes < 1) return 'только что'
+  if (minutes < 60) return `${minutes} мин назад`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `обновлено ${hours} ч назад`
-  const days = Math.floor(hours / 24)
-  return `обновлено ${days} дн назад`
+  if (hours < 24) return `${hours} ч назад`
+  return `${Math.floor(hours / 24)} дн назад`
+}
+
+function StateCard({
+  title,
+  state,
+  now,
+  presence,
+  self,
+}: {
+  title: string
+  state?: EmotionState
+  now: number
+  presence?: string
+  self?: boolean
+}) {
+  const definition = getEmotionDefinition(state?.emotionId)
+  return (
+    <article className={`state-summary-card ${self ? 'self' : 'partner'}`}>
+      <div className="state-summary-top">
+        <span>{title}</span>
+        {presence ? <small>{presence}</small> : null}
+      </div>
+      <div className="state-summary-main">
+        <span className="state-emoji" aria-hidden="true">{definition?.emoji ?? '♡'}</span>
+        <div>
+          <strong>{definition?.label ?? 'Пока без состояния'}</strong>
+          <small>{state ? `${state.intensity}% · ${formatEmotionUpdated(state, now)}` : 'можно отметить ниже'}</small>
+        </div>
+      </div>
+      <p>{state?.note ? `«${state.note}»` : self ? 'Твоя короткая мысль появится здесь.' : 'Здесь появится короткая мысль партнёра.'}</p>
+    </article>
+  )
 }
 
 export function HomeScreen({ profile, couple }: Props) {
-  const [activeTab, setActiveTab] = useState<'home' | 'world'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'world' | 'settings'>('home')
+  const setProfile = useSessionStore((state) => state.setProfile)
   const partnerId = couple.memberIds.find((id) => id !== profile.uid)
   const partner = partnerId ? couple.members[partnerId] : undefined
   const { presence, now } = usePresence(couple.id, profile.uid, activeTab)
   const { states: emotions, error: emotionSyncError } = useEmotions(couple.id)
   const { events: touchEvents, unseenIncoming, error: touchSyncError } = useTouches(couple.id, profile.uid)
+  const shared = useSharedSpace(couple.id)
   const partnerPresence = presenceToView(partnerId ? presence[partnerId] : undefined, now)
   const partnerEmotion = partnerId ? emotions[partnerId] : undefined
   const selfEmotion = emotions[profile.uid]
-  const partnerEmotionDefinition = getEmotionDefinition(partnerEmotion?.emotionId)
+
+  if (activeTab === 'settings') {
+    return (
+      <SettingsScreen
+        profile={profile}
+        couple={couple}
+        meeting={shared.meeting}
+        onBack={() => setActiveTab('home')}
+        onProfileUpdated={setProfile}
+      />
+    )
+  }
 
   if (activeTab === 'world') {
     return (
@@ -63,57 +111,44 @@ export function HomeScreen({ profile, couple }: Props) {
   }
 
   return (
-    <main className="app-shell">
+    <main className="app-shell polished-home">
       <IncomingTouch coupleId={couple.id} event={unseenIncoming} sender={partner} />
-      <section className="hero">
-        <div>
-          <p className="eyebrow">НАШЕ ПРОСТРАНСТВО</p>
-          <h1>{couple.name}</h1>
-        </div>
-        <button className="mini-button" type="button" onClick={() => void logout()}>Выйти</button>
-      </section>
 
-      <section className="card partner-card">
-        <div className="card-head">
-          <div className="partner-state-copy">
-            <span className="muted">{partner ? `${partner.displayName} сейчас` : 'Ждём второго человека'}</span>
-            <h2>
-              {partner
-                ? partnerEmotionDefinition
-                  ? `${partnerEmotionDefinition.emoji} ${partnerEmotionDefinition.label}`
-                  : 'Пока не отметил(а) состояние'
-                : 'Код подключения готов'}
-            </h2>
-            {partner && partnerEmotion ? (
-              <span className="emotion-updated">{formatEmotionUpdated(partnerEmotion, now)}</span>
-            ) : null}
-          </div>
-          {partner ? (
-            <div className="partner-meta">
-              {partnerEmotion ? <span className="intensity">{partnerEmotion.intensity}%</span> : null}
-              <span className={`presence-pill ${partnerPresence.state}`}>
-                <span className="presence-dot" aria-hidden="true" />
-                {partnerPresence.label}
-              </span>
-            </div>
-          ) : (
-            <span className="intensity">1/2</span>
-          )}
-        </div>
+      <CoupleOverview
+        profile={profile}
+        couple={couple}
+        partner={partner}
+        partnerId={partnerId}
+        partnerPresenceLabel={partnerPresence.label}
+        partnerOnline={partnerPresence.state === 'online'}
+        meeting={shared.meeting}
+        photos={shared.photos}
+        onOpenSettings={() => setActiveTab('settings')}
+      />
 
-        <p className={`quote ${partnerEmotion?.note ? '' : 'empty-note'}`}>
-          {partner
-            ? partnerEmotion?.note
-              ? `«${partnerEmotion.note}»`
-              : 'Когда здесь появится короткая мысль, она сразу синхронизируется на втором телефоне.'
-            : `Код пространства: ${couple.id}`}
-        </p>
-
-        <TouchActions coupleId={couple.id} fromUid={profile.uid} toUid={partnerId} />
-      </section>
-
+      {shared.error ? <p className="sync-warning">{shared.error}</p> : null}
       {emotionSyncError ? <p className="sync-warning">{emotionSyncError}</p> : null}
       {touchSyncError ? <p className="sync-warning">{touchSyncError}</p> : null}
+
+      <section className="home-section states-section">
+        <div className="home-section-heading">
+          <span>Как мы сейчас</span>
+          <small>обновляется у вас обоих сразу</small>
+        </div>
+        <div className="state-pair-grid">
+          <StateCard
+            title={partner ? partner.displayName : 'Партнёр'}
+            state={partnerEmotion}
+            now={now}
+            presence={partner ? partnerPresence.label : 'ещё не подключён'}
+          />
+          <StateCard title={`${profile.displayName} · ты`} state={selfEmotion} now={now} self />
+        </div>
+        <div className="quick-touch-card">
+          <div><strong>Быстрый знак внимания</strong><span>без переписки</span></div>
+          <TouchActions coupleId={couple.id} fromUid={profile.uid} toUid={partnerId} />
+        </div>
+      </section>
 
       <EmotionComposer
         coupleId={couple.id}
@@ -121,6 +156,8 @@ export function HomeScreen({ profile, couple }: Props) {
         displayName={profile.displayName}
         current={selfEmotion}
       />
+
+      <PlansBoard couple={couple} profile={profile} />
 
       <DailyHub couple={couple} profile={profile} />
 

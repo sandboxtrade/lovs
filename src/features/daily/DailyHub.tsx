@@ -165,17 +165,26 @@ export function DailyHub({ couple, profile }: Props) {
         )}
       </article>
 
-      <article className="daily-section quest-section">
+      <article className="daily-section quest-section quest-redesign">
         <div className="daily-section-head">
           <span className="daily-icon">03</span>
-          <div><strong>Маленькое задание</strong><small>{daily.quest.length}/2 выполнено</small></div>
+          <div><strong>Небольшое дело друг для друга</strong><small>закрывается, когда отметитесь оба</small></div>
         </div>
-        <p className="daily-prompt">{daily.content.quest}</p>
-        <div className="quest-progress"><span className={selfQuestDone ? 'done' : ''}>Ты {selfQuestDone ? '✓' : '○'}</span><span className={partnerQuestDone ? 'done' : ''}>{partnerName} {partnerQuestDone ? '✓' : '○'}</span></div>
-        <button className="daily-submit" type="button" disabled={busy !== null || selfQuestDone} onClick={() => void finishQuest()}>
-          {selfQuestDone ? 'Ты отметил(а) выполнение' : busy === 'quest' ? 'Сохраняю…' : 'Я сделал(а)'}
+        <p className="daily-prompt quest-prompt">{daily.content.quest}</p>
+        <div className="quest-people">
+          <div className={selfQuestDone ? 'done' : ''}>
+            <span>{selfQuestDone ? '✓' : '○'}</span>
+            <div><strong>Ты</strong><small>{selfQuestDone ? 'готово' : 'ещё не отмечено'}</small></div>
+          </div>
+          <div className={partnerQuestDone ? 'done' : ''}>
+            <span>{partnerQuestDone ? '✓' : '○'}</span>
+            <div><strong>{partnerName}</strong><small>{partnerQuestDone ? 'готово' : 'ещё не отмечено'}</small></div>
+          </div>
+        </div>
+        <button className="daily-submit quest-action" type="button" disabled={busy !== null || selfQuestDone} onClick={() => void finishQuest()}>
+          {selfQuestDone ? 'Отмечено ✓' : busy === 'quest' ? 'Сохраняю…' : 'Отметить, что я сделал(а)'}
         </button>
-        {selfQuestDone && partnerQuestDone ? <div className="daily-complete">Готово вдвоём · задание дня закрыто</div> : null}
+        {selfQuestDone && partnerQuestDone ? <div className="daily-complete">♥ Готово вдвоём</div> : null}
       </article>
 
       {message ? <p className="daily-message">{message}</p> : null}

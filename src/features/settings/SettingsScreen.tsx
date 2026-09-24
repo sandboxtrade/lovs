@@ -108,7 +108,7 @@ export function SettingsScreen({ profile, couple, meeting, onBack, onProfileUpda
       {message ? <p className="settings-message">{message}</p> : null}
 
       <button className="logout-button" type="button" onClick={() => void logout()}>Выйти из аккаунта</button>
-      <p className="settings-version">US · v1.1.1</p>
+      <p className="settings-version">US · v1.1.3</p>
     </main>
   )
 }

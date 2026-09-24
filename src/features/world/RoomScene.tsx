@@ -8,11 +8,14 @@ type Props = {
 
 export function RoomScene({ ownedItemIds, pet }: Props) {
   return (
-    <div className="room-scene" aria-label="Ваша общая виртуальная комната">
+    <div className="room-scene room-scene-polished" aria-label="Ваша общая виртуальная комната">
       <div className="room-wall">
-        <div className="room-window" aria-hidden="true"><span>☁</span><i /></div>
+        <div className="room-ambient room-ambient-one" aria-hidden="true" />
+        <div className="room-ambient room-ambient-two" aria-hidden="true" />
+        <div className="room-window" aria-hidden="true"><span>☾</span><i /></div>
+        <div className="room-wall-art" aria-hidden="true"><span>♡</span></div>
         <div className="room-sofa" aria-hidden="true"><i /><b /></div>
-        <div className="room-table" aria-hidden="true" />
+        <div className="room-table" aria-hidden="true"><span>✦</span></div>
         <div className="room-floor" aria-hidden="true" />
 
         {ROOM_ITEMS.map((item) => ownedItemIds.has(item.id) ? (
